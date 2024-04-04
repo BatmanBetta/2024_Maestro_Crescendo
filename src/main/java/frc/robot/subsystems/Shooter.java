@@ -14,9 +14,9 @@ import com.revrobotics.CANSparkBase.SoftLimitDirection;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -26,12 +26,13 @@ import frc.robot.RobotContainer;
 public class Shooter extends SubsystemBase {
 	Timer timer = new Timer();
 
-	public static double targetVelocity = 10;
+	public static double targetVelocity;
 	public static double setpointAmp = 0;
 	boolean isAtSetpoint;
 
 	public enum ShooterState {
 		IDLE,
+		PASSIVE,
 		CLOSESHOT,
 		MANUAL,
 		AMP,
@@ -115,8 +116,7 @@ public class Shooter extends SubsystemBase {
 	
 	 public void setAmpPosition() {
     double output = 0;
-    output = ampController.calculate(ticksToDegrees(ampEncoder.getPosition()), setpointAmp)
-	+ Constants.Shooter.AMP_KG * Math.cos(ticksToDegrees(ampEncoder.getPosition()));
+    output = ampController.calculate(ticksToDegrees(ampEncoder.getPosition()), setpointAmp);
     amper.set(MathUtil.clamp(output, -.4, .4));
   }
 
@@ -136,7 +136,7 @@ public class Shooter extends SubsystemBase {
 	@Override
 	public void periodic() {
 		timer.start();
-		System.out.println(isAtVelocitySetpoint());
+		// System.out.println(ampEncoder.getPosition());
 		SmartDashboard.putNumber("RPS Shooter", shooterLeft.getRotorVelocity().getValueAsDouble());
 		SmartDashboard.putBoolean("Shooter At Setpoint", shooterLeft.getRotorVelocity().getValueAsDouble() >= targetVelocity);
 
@@ -144,10 +144,8 @@ public class Shooter extends SubsystemBase {
 
 		SmartDashboard.putString("Shooter State", String.valueOf(getState()));
 
-		SmartDashboard.putNumber("Amper Position", ampEncoder.getPosition());
-		SmartDashboard.putNumber("Amper Current", amper.getOutputCurrent());
-
-		SmartDashboard.putNumber("Amper Setpoint", getSetpointAmp());
+		SmartDashboard.putNumber("Amp Position", ampEncoder.getPosition());
+		SmartDashboard.putNumber("Amp Setpoint", getSetpointAmp());
 
 		// if (RobotState.isTeleop() && RobotState.isEnabled() && Vision.getDistanceToSpeaker() < 8){
 		// 	shooterState = ShooterState.PASSIVE;
@@ -155,14 +153,19 @@ public class Shooter extends SubsystemBase {
 
 		switch (shooterState) {
 			case IDLE:
-			setSetpointAmp(0);
-				// setAmpPosition();
+				setSetpointAmp(0);
+				setAmpPosition();
+				targetVelocity = 1;
+				setShooterVelocity(0);
 				setWheelSpeed(0);
 				break;
-
+			case PASSIVE:
+				targetVelocity = 10;
+				setShooterVelocity(20);
+				break;
 			case CLOSESHOT:
-				targetVelocity = 63;
-				setShooterVelocity(120);
+				targetVelocity = 60;
+				setShooterVelocity(100);
 				break;
 			case AMP:
 				setSetpointAmp(3);
@@ -174,7 +177,7 @@ public class Shooter extends SubsystemBase {
 				setShooterVelocity(-3);
 				break;
 			case MANUAL:
-				amper.set(RobotContainer.testPad.getRightX() * -1);
+				amper.set(RobotContainer.testPad.getRightX() * .2);
 				break;
 		}
 	}
