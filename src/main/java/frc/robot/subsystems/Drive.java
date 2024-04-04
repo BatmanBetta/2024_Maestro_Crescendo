@@ -53,7 +53,6 @@ public class Drive extends SwerveDrivetrain implements Subsystem {
         for (var moduleLocation : m_moduleLocations) {
             driveBaseRadius = Math.max(driveBaseRadius, moduleLocation.getNorm());
         }
-
         final HolonomicPathFollowerConfig pathFollowerConfig = new HolonomicPathFollowerConfig(
                 new PIDConstants(1.0, 0, 0), // Translation constants
                 new PIDConstants(1.0, 0, 0), // Rotation constants
@@ -111,19 +110,16 @@ public class Drive extends SwerveDrivetrain implements Subsystem {
                 if(Vision.getMultiTagResult(RobotContainer.vision.shootingCamera) != null){
                     Translation3d pose = Vision.getMultiTagResult(RobotContainer.vision.shootingCamera);
                     double time = Timer.getFPGATimestamp();
-                    if (pose != null && RobotContainer.vision.shootingCamera.getLatestResult().getBestTarget().getPoseAmbiguity() < .3){
+                    if (pose != null){
                     Pose2d usablePose = new Pose2d(pose.toTranslation2d(), RobotContainer.drivetrain.getState().Pose.getRotation());
                     addVisionMeasurement(usablePose, time);
                     }
                 }
-
                 // if(Vision.getMultiTagResult(RobotContainer.vision.shootingCamera2) != null){
                 //     Translation3d pose = Vision.getMultiTagResult(RobotContainer.vision.shootingCamera2);
-                //     double time = Timer.getFPGATimestamp();
-                //     if (pose != null && RobotContainer.vision.shootingCamera2.getLatestResult().getBestTarget().getPoseAmbiguity() < .3){
-                //     Pose2d usablePose = new Pose2d(pose.toTranslation2d(), RobotContainer.drivetrain.getState().Pose.getRotation());
+                //     double time = RobotContainer.vision.shootingCamera2.getLatestResult().getTimestampSeconds();
+                //     Pose2d usablePose = new Pose2d(pose.toTranslation2d(), new Rotation2d());
                 //     addVisionMeasurement(usablePose, time);
-                //     }
                 // }
     };
 }

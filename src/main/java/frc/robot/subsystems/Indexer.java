@@ -86,7 +86,7 @@ public class Indexer extends SubsystemBase {
         setWheelSpeed(0);
       }
       else{
-      setWheelSpeed(.5);
+      setWheelSpeed(.6);
       }
         break;
       case MANUAL:
